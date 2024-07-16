@@ -69,6 +69,11 @@ def get_count():
     return make_succ_response(0) if counter is None else make_succ_response(counter.count)
 
 
+@app.route('/api/price/type', methods=['GET', 'POST'])
+def get_price_type():
+    return make_succ_response(['FUEL'])
+
+
 @app.route('/api/price/fuel', methods=['POST'])
 def get_fuel_price():
     headers = {
@@ -90,3 +95,4 @@ def get_fuel_price():
         'abstract': f"<p style='color: red'>{abstract}</p>",
         'body': body,
     }
+    return make_succ_response(msg)
