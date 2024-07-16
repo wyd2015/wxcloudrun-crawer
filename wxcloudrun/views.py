@@ -1,4 +1,7 @@
 from datetime import datetime
+
+import requests
+from bs4 import BeautifulSoup
 from flask import render_template, request
 from run import app
 from wxcloudrun.dao import delete_counterbyid, query_counterbyid, insert_counter, update_counterbyid
@@ -64,3 +67,26 @@ def get_count():
     """
     counter = Counters.query.filter(Counters.id == 1).first()
     return make_succ_response(0) if counter is None else make_succ_response(counter.count)
+
+
+@app.route('/api/price/fuel', methods=['POST'])
+def get_fuel_price():
+    headers = {
+        "Host": 'm.qiyoujiage.com',
+        "User-Agent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0',
+        'Connection': 'Keep-Alive',
+        'Content-Type': 'text/plain; Charset=UTF-8',
+        'Accept-Language': 'zh-cn',
+    }
+    resp = requests.get('http://m.qiyoujiage.com/beijing.shtml', headers=headers)
+    soup = BeautifulSoup(resp.content, 'html.parser')
+    dl_list = soup.find_all('dl')
+    body = ''
+    for dl in dl_list:
+        body += f"- {dl.find('dt').text}：{dl.find('dd').text.replace('(', '').replace(')', '/升')}\n"
+    abstract = soup.find('div', attrs={'style':' border:solid 1px #009cff; margin:5px; padding:5px;'}).text.replace('\n', '').replace('\r', '')
+    msg = {
+        'title': '北京燃油价格',
+        'abstract': f"<p style='color: red'>{abstract}</p>",
+        'body': body,
+    }
